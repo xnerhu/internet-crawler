@@ -33,17 +33,15 @@ export default class Parser {
     };
 
     if (tag.type !== HTMLElementType.Closing) {
-      tag.attributes = this._parseAttributes(token, tag.tagName);
+      tag.attributes = this._parseAttributes(token, tag.tagName, tag.type);
     }
-
-    console.log("\n\n\n\n", tag);
 
     return tag;
   }
 
   private static _getTagType(token: Token): HTMLElementType {
-    if (token[1] === '/') return HTMLElementType.Closing;
     if (token[token.length - 2] === '/') return HTMLElementType.SelfClosing;
+    if (token[1] === '/') return HTMLElementType.Closing;
     return HTMLElementType.Opening;
   }
 
@@ -59,17 +57,21 @@ export default class Parser {
     }
   }
 
-  private static _parseAttributes(token: Token, tagName?: string): HTMLElementAttributesMap {
-    if (tagName == null) {
-      tagName = this._getTagName(token);
-    }
+  private static _parseAttributes(token: Token, tagName?: string, tagType?: HTMLElementType): HTMLElementAttributesMap {
+    if (tagName == null) tagName = this._getTagName(token);
+    if (tagType == null) tagType = this._getTagType(token);
 
     const map: HTMLElementAttributesMap = {};
     let capturingValue = false;
     let property = "";
     let text = "";
+    let length = token.length;
 
-    for (let i = tagName.length + 2; i < token.length; i++) {
+    if (tagType === HTMLElementType.SelfClosing) {
+      length--;
+    }
+
+    for (let i = tagName.length + 2; i < length; i++) {
       if (!capturingValue && text.length && (token[i] === ' ' || token[i] === '=' || i === token.length - 1)) {
         if (token[i] === '=') {
           capturingValue = true;
