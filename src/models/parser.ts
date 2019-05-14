@@ -1,72 +1,93 @@
-import { HyperLink } from "./hyper-link";
+import { Token } from "./token";
+import { HTMLElement, HTMLElementType, HTMLElementAttributesMap } from "./html-element";
 
-type CapturingType = 'none' | 'tag' | 'closed-tag' | 'comment' | 'script-tag';
-
-interface HTMLElement {
-  tagName?: string;
-
-}
-
-export class Parser {
-  public isOpeningComment(i: number, src: string) {
-    return i + 2 < src.length && src[i] === '!' && src[i + 1] === '-' && src[i + 2] === '-';
-  }
-
-  public isClosingComment(i: number, src: string) {
-    return i + 1 < src.length && src[i] === '-' && src[i + 1] === '>';
-  }
-
-  public extractLinks(src: string): HyperLink[] {
-    const list: HyperLink[] = [];
-
-    let type: CapturingType = 'none';
+export default class Parser {
+  static tokenize(src: string): Token[] {
+    let list: Token[] = [];
+    let capturing = false;
     let text = "";
 
     for (let i = 0; i < src.length; i++) {
-      switch (src[i]) {
-        case "<": {
-          text = "";
+      if (src[i] === '<' && !capturing) {
+        capturing = true;
+        text = "";
+      } else if (src[i] === '>' && capturing) {
+        capturing = false;
+        list.push(text.trimRight() + '>');
+      }
 
-          if (this.isOpeningComment(i + 1, src)) {
-            type = 'comment';
-          }
-
-          if (type !== 'comment') {
-            type = 'tag';
-            tag = {};
-            break;
-          }
-        }
-        case ">": {
-          if (type === 'tag') {
-            type = 'none';
-          }
-          break;
-        }
-        case "-": {
-          if (type === 'comment' && this.isClosingComment(i + 1, src)) {
-            type = 'none';
-            break;
-          }
-        }
-        default: {
-          if (type === 'tag') {
-            if (!text.length && src[i] === '/') {
-              type = 'closed-tag';
-            } else {
-              text += src[i];
-            }
-          }
-        }
+      if (capturing) {
+        text += src[i];
       }
     }
 
     return list;
   }
 
-  public parseAttributes() {
+  static parseToken(token: Token): HTMLElement {
+    if (token.length < 3) return null;
 
+    let tag: HTMLElement = {
+      type: this._getTagType(token),
+      tagName: this._getTagName(token),
+    };
+
+    if (tag.type !== HTMLElementType.Closing) {
+      tag.attributes = this._parseAttributes(token, tag.tagName);
+    }
+
+    console.log("\n\n\n\n", tag);
+
+    return tag;
   }
-};
 
-export default new Parser();
+  private static _getTagType(token: Token): HTMLElementType {
+    if (token[1] === '/') return HTMLElementType.Closing;
+    if (token[token.length - 2] === '/') return HTMLElementType.SelfClosing;
+    return HTMLElementType.Opening;
+  }
+
+  private static _getTagName(token: Token): any {
+    let tagName = '';
+
+    for (let i = 1; i < token.length; i++) {
+      if (token[i] === ' ' || i === token.length - 1) {
+        return tagName;
+      } else if (token[i] !== '<' && token[i] !== '/') {
+        tagName += token[i];
+      }
+    }
+  }
+
+  private static _parseAttributes(token: Token, tagName?: string): HTMLElementAttributesMap {
+    if (tagName == null) {
+      tagName = this._getTagName(token);
+    }
+
+    const map: HTMLElementAttributesMap = {};
+    let capturingValue = false;
+    let property = "";
+    let text = "";
+
+    for (let i = tagName.length + 2; i < token.length; i++) {
+      if (!capturingValue && text.length && (token[i] === ' ' || token[i] === '=' || i === token.length - 1)) {
+        if (token[i] === '=') {
+          capturingValue = true;
+          i++;
+        }
+
+        property = text;
+        map[property] = "";
+        text = "";
+      } else if (capturingValue && (token[i] === '"')) {
+        capturingValue = false;
+        map[property] = text;
+        text = "";
+      } else if (token[i] !== ' ' || capturingValue) {
+        text += token[i];
+      }
+    }
+
+    return map;
+  }
+}
