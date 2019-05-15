@@ -21,7 +21,9 @@
     "build": "tsc"
   },
   "devDependencies": {
+    "@types/axios": "0.14.0",
     "@types/node": "11.9.5",
+    "axios": "0.18.0",
     "nodemon": "1.18.10",
     "typescript": "3.3.3333"
   },

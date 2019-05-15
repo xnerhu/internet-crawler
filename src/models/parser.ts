@@ -30,6 +30,7 @@ export default class Parser {
     let tag: HTMLElement = {
       type: this._getTagType(token),
       tagName: this._getTagName(token),
+      attributes: {},
     };
 
     if (tag.type !== HTMLElementType.Closing) {
@@ -50,7 +51,7 @@ export default class Parser {
 
     for (let i = 1; i < token.length; i++) {
       if (token[i] === ' ' || i === token.length - 1) {
-        return tagName;
+        return tagName.toLowerCase();
       } else if (token[i] !== '<' && token[i] !== '/') {
         tagName += token[i];
       }
@@ -78,7 +79,7 @@ export default class Parser {
           i++;
         }
 
-        property = text;
+        property = text.toLowerCase();
         map[property] = "";
         text = "";
       } else if (capturingValue && (token[i] === '"')) {
