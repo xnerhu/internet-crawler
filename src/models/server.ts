@@ -45,13 +45,12 @@ export class Server {
     this.getAvailable().assign();
   }
 
-  public getIndexies() {
+  public getQueueIndexies() {
     const start = this.queueStart;
     const end = Math.min(start + PACKAGE_SIZE, this.queue.length);
 
     this.queueStart = Math.min(end, this.queue.length - 1);
-
-    return { start, end, size: this.queue.length };
+    return { start, end };
   }
 
   public getAvailable() {

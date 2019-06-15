@@ -2,7 +2,6 @@ import * as WebSocket from 'ws';
 import { IncomingMessage } from 'http';
 
 import { Server } from './server';
-import { PACKAGE_SIZE } from '../constants';
 
 export class Peer {
   public server: Server;
@@ -13,23 +12,21 @@ export class Peer {
 
   public available = true;
 
-  public queueStart = -1;
-
-  public queueEnd = -1;
+  public queueIndexies = { start: -1, end: -1 };
 
   constructor(server: Server, ws: WebSocket, req: IncomingMessage) {
     this.server = server;
     this.req = req;
     this.ws = ws;
-    this.ws.on('message', this.onMessage);
   }
 
   public get ip() {
     return this.req.connection.remoteAddress;
   }
 
-  public onMessage = (data: WebSocket.Data) => {
-    console.log('Message: ', data);
+  public get queue() {
+    const { start, end } = this.queueIndexies;
+    return this.server.queue.slice(start, end);
   }
 
   public assign() {
@@ -37,18 +34,17 @@ export class Peer {
       return console.log('Peer is not available!');
     }
 
-    console.log(`Assigning new queue for ${this.ip}`);
+    console.log(`Sending queue for ${this.ip}`);
 
-    while (true) {
-      const indexies = this.server.getIndexies();
+    this.queueIndexies = this.server.getQueueIndexies();
+    this.available = false;
+    this.send('assign-queue', this.queue);
+  }
 
-      console.log(indexies);
-
-      for (let i = indexies.start; i < indexies.end; i++) {
-        console.log(`${i}: ${this.server.queue[i]}`);
-      }
-
-      if (indexies.end >= indexies.size) break;
-    }
+  public send(action: string, data?: any) {
+    this.ws.send(JSON.stringify({
+      action,
+      data,
+    }));
   }
 }

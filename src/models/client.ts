@@ -15,7 +15,11 @@ export class Client {
     console.log('Connected!');
   }
 
-  public onMessage(data: string) {
+  public onMessage(message: string) {
+    const { action, data } = JSON.parse(message);
 
+    if (action === 'assign-queue') {
+      console.log(data);
+    }
   }
 }
