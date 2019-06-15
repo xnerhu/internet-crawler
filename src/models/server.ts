@@ -49,7 +49,7 @@ export class Server {
     const start = this.queueStart;
     const end = Math.min(start + PACKAGE_SIZE, this.queue.length);
 
-    this.queueStart = Math.min(end, this.queue.length - 1);
+    this.queueStart = Math.min(end, this.queue.length);
     return { start, end };
   }
 
