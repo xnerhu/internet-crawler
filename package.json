@@ -1,5 +1,5 @@
 {
-  "name": "supreme-bot",
+  "name": "internet-crawler",
   "version": "1.0.0",
   "description": "",
   "keywords": [],
@@ -10,25 +10,34 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/xnerhu/supreme-bot.git"
+    "url": "git+https://github.com/xnerhu/internet-crawler.git"
   },
-  "homepage": "https://github.com/xnerhu/supreme-bot#readme",
+  "homepage": "https://github.com/xnerhu/internet-crawler#readme",
   "scripts": {
-    "dev": "nodemon src/index.ts",
-    "start": "pm2 start ./build/index.js --name \"supreme-bot\"",
-    "stop": "pm2 stop supreme-bot",
-    "restart": "pm2 restart supreme-bot",
+    "dev-server": "cross-env type='server' nodemon src/index.ts",
+    "dev-client": "cross-env type='client' nodemon src/index.ts",
+    "start": "pm2 start ./build/index.js --name \"ic\"",
+    "stop": "pm2 stop ic",
+    "restart": "pm2 restart ic",
     "build": "tsc"
   },
   "devDependencies": {
     "@types/axios": "0.14.0",
+    "@types/nedb": "1.8.7",
     "@types/node": "11.9.5",
-    "axios": "0.18.0",
+    "@types/ws": "6.0.1",
+    "axios": "0.19.0",
+    "cross-env": "5.2.0",
+    "nedb": "1.8.0",
     "nodemon": "1.18.10",
-    "typescript": "3.3.3333"
+    "ts-node": "8.3.0",
+    "tslint": "5.17.0",
+    "tslint-config-airbnb": "5.11.1",
+    "tslint-config-prettier": "1.18.0",
+    "typescript": "3.3.3333",
+    "ws": "7.0.0"
   },
   "dependencies": {
-    "pm2": "3.3.1",
-    "ts-node": "8.0.2"
+    "pm2": "3.3.1"
   }
 }
