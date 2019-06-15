@@ -6,15 +6,16 @@ export class Client {
   public init() {
     console.log('Initializing client!');
 
-    this.ws = new WebSocket('ws://localhost:8000');
+    this.ws = new WebSocket('ws://localhost:7000');
     this.ws.on('open', this.onOpen);
-
-    setTimeout(() => {
-      this.ws.send('Hello world!');
-    }, 2500);
+    this.ws.on('message', this.onMessage);
   }
 
   public onOpen() {
     console.log('Connected!');
+  }
+
+  public onMessage(data: string) {
+
   }
 }
