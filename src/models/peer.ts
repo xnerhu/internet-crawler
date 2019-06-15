@@ -2,6 +2,7 @@ import * as WebSocket from 'ws';
 import { IncomingMessage } from 'http';
 
 import { Server } from './server';
+import { PACKAGE_SIZE } from '../constants';
 
 export class Peer {
   public server: Server;
@@ -34,7 +35,15 @@ export class Peer {
     const { action, data } = JSON.parse(message);
 
     if (action === 'finish') {
-      console.log(data);
+      this.server.tempQueue = [...this.server.tempQueue, ...data];
+      this.busy = false;
+
+      if (this.server.queueStart + PACKAGE_SIZE - 1 <= this.server.queue.length) {
+        this.server.finishedPackages++;
+        this.assign();
+      } else {
+        this.server.onFinish();
+      }
     }
   }
 
@@ -50,7 +59,7 @@ export class Peer {
       return console.log(`Peer #${this.server.peers.indexOf(this)} is busy!`);
     }
 
-    console.log(`Assigning queue for #${this.server.peers.indexOf(this)} (${this.ip})`);
+    console.log(`Assigning for #${this.server.peers.indexOf(this)} (${this.ip}), package ${this.server.finishedPackages + 1}/${this.server.packages}`);
 
     this.queueIndexies = this.server.getQueueIndexies();
     this.busy = true;

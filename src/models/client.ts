@@ -63,6 +63,14 @@ export class Client {
 
     console.log(`\Done in ${Math.round((new Date().getTime() - start.getTime()) / 1000)}s`);
 
+    this.end();
+  }
+
+  public end() {
+    this.send('finish', this.tempQueue);
+
+    this.tempQueue = [];
+    this.queue = [];
     this.busy = false;
   }
 

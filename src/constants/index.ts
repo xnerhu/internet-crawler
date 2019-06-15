@@ -1,1 +1,1 @@
-export const PACKAGE_SIZE = 5;
+export const PACKAGE_SIZE = 16;

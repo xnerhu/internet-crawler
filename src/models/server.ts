@@ -8,29 +8,38 @@ import { Peer } from './peer';
 import { PACKAGE_SIZE } from '../constants';
 
 export class Server {
+  public db = new Database({
+    filename: resolve('storage/db.db'),
+    autoload: true,
+  });
+
   public wss: WebSocket.Server;
 
   public peers: Peer[] = [];
 
   public queue: string[] = [];
 
+  public tempQueue: string[] = [];
+
   public queueStart = 0;
+
+  public finishedPackages = 0;
 
   public init() {
     console.log('Initializing server on port 7000!');
 
     this.loadQueue();
     this.wss = new WebSocket.Server({ port: 7000 });
-    this.wss.on('connection', this.onConnection);
+    this.wss.on('connection', this.onConnect);
   }
 
-  public onConnection = (ws: WebSocket, req: IncomingMessage) => {
+  public onConnect = (ws: WebSocket, req: IncomingMessage) => {
     const peer = new Peer(this, ws, req);
     this.peers.push(peer);
 
     console.log(`New connection #${this.peers.length - 1} from ${peer.ip}`);
 
-    this.start();
+    peer.assign();
   }
 
   public loadQueue() {
@@ -41,10 +50,6 @@ export class Server {
     }
   }
 
-  public start() {
-    this.getAvailable().assign();
-  }
-
   public getQueueIndexies() {
     const start = this.queueStart;
     const end = Math.min(start + PACKAGE_SIZE, this.queue.length);
@@ -53,7 +58,31 @@ export class Server {
     return { start, end };
   }
 
-  public getAvailable() {
-    return this.peers.find(r => !r.busy);
+  public onFinish() {
+    console.log('\nFinished all.');
+
+    const list = this.tempQueue.map(url => ({ url }));
+
+    this.db.insert(list, (err) => {
+      if (err) {
+        console.log('Error while inserting urls into database!', err);
+      }
+    });
+
+    this.queue = this.tempQueue;
+    this.tempQueue = [];
+    this.queueStart = 0;
+
+    this.assignMany();
+  }
+
+  public assignMany() {
+    for (const peer of this.peers) {
+      peer.assign();
+    }
+  }
+
+  public get packages() {
+    return Math.ceil(this.queue.length / PACKAGE_SIZE);
   }
 }
