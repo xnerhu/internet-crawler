@@ -10,7 +10,7 @@ export class Peer {
 
   public req: IncomingMessage;
 
-  public available = true;
+  public busy = false;
 
   public queueIndexies = { start: -1, end: -1 };
 
@@ -18,6 +18,7 @@ export class Peer {
     this.server = server;
     this.req = req;
     this.ws = ws;
+    this.ws.on('message', this.onMessage);
   }
 
   public get ip() {
@@ -29,16 +30,12 @@ export class Peer {
     return this.server.queue.slice(start, end);
   }
 
-  public assign() {
-    if (!this.available) {
-      return console.log('Peer is not available!');
+  public onMessage = (message: string) => {
+    const { action, data } = JSON.parse(message);
+
+    if (action === 'finish') {
+      console.log(data);
     }
-
-    console.log(`Sending queue for ${this.ip}`);
-
-    this.queueIndexies = this.server.getQueueIndexies();
-    this.available = false;
-    this.send('assign-queue', this.queue);
   }
 
   public send(action: string, data?: any) {
@@ -46,5 +43,18 @@ export class Peer {
       action,
       data,
     }));
+  }
+
+  public assign() {
+    if (this.busy) {
+      return console.log(`Peer #${this.server.peers.indexOf(this)} is busy!`);
+    }
+
+    console.log(`Assigning queue for #${this.server.peers.indexOf(this)} (${this.ip})`);
+
+    this.queueIndexies = this.server.getQueueIndexies();
+    this.busy = true;
+
+    this.send('assign-queue', this.queue);
   }
 }

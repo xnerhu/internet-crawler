@@ -28,7 +28,7 @@ export class Server {
     const peer = new Peer(this, ws, req);
     this.peers.push(peer);
 
-    console.log(`New connection #${this.peers.length} from ${peer.ip}`);
+    console.log(`New connection #${this.peers.length - 1} from ${peer.ip}`);
 
     this.start();
   }
@@ -54,6 +54,6 @@ export class Server {
   }
 
   public getAvailable() {
-    return this.peers.find(r => r.available);
+    return this.peers.find(r => !r.busy);
   }
 }

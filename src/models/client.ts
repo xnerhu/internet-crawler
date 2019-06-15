@@ -15,6 +15,8 @@ export class Client {
 
   public counter: Counter;
 
+  public busy = false;
+
   public init() {
     console.log('Initializing client!');
 
@@ -31,10 +33,20 @@ export class Client {
     const { action, data } = JSON.parse(message);
 
     if (action === 'assign-queue') {
+      if (this.busy) return console.log('Error! This peer is busy.');
+
       this.queue = data;
+      this.busy = true;
       this.counter = { errors: 0, finished: 0 };
       this.start();
     }
+  }
+
+  public send(action: string, data?: any) {
+    this.ws.send(JSON.stringify({
+      action,
+      data,
+    }));
   }
 
   public async start() {
@@ -46,11 +58,12 @@ export class Client {
       this.counter.finished++;
 
       const percent = (this.counter.finished / this.queue.length * 100).toFixed(2);
-
       console.log(`${percent}% - ${url}`);
     }
 
     console.log(`\Done in ${Math.round((new Date().getTime() - start.getTime()) / 1000)}s`);
+
+    this.busy = false;
   }
 
   public async extract(url: string) {
