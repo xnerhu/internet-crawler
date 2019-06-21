@@ -1,14 +1,9 @@
-import { resolve } from 'path';
-import { readFileSync } from 'fs';
+import { Server, Client } from './models';
 
-import Parser from './models/parser';
-import { HTMLElementType } from './models/html-element';
-import Crawler from './models/crawler';
-
-const init = async () => {
-  const src = readFileSync(resolve('./static', 'a.html'), 'utf8');
-
-  Crawler.init('https://www.github.com');
+if (process.env.type === 'server') {
+  const server = new Server();
+  server.init();
+} else {
+  const client = new Client();
+  client.init();
 }
-
-init();

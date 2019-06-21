@@ -13,3 +13,5 @@ export interface HTMLElement {
 export interface HTMLElementAttributesMap {
   [key: string]: string;
 }
+
+export type Token = string;

@@ -1,19 +1,18 @@
-import { Token } from "./token";
-import { HTMLElement, HTMLElementType, HTMLElementAttributesMap } from "./html-element";
+import { HTMLElement, HTMLElementType, HTMLElementAttributesMap, Token } from './html-element';
 
 export default class Parser {
   static tokenize(src: string): Token[] {
-    let list: Token[] = [];
+    const list: Token[] = [];
     let capturing = false;
-    let text = "";
+    let text = '';
 
     for (let i = 0; i < src.length; i++) {
       if (src[i] === '<' && !capturing) {
         capturing = true;
-        text = "";
+        text = '';
       } else if (src[i] === '>' && capturing) {
         capturing = false;
-        list.push(text.trimRight() + '>');
+        list.push(`${text.trimRight()}>`);
       }
 
       if (capturing) {
@@ -27,7 +26,7 @@ export default class Parser {
   static parseToken(token: Token): HTMLElement {
     if (token.length < 3) return null;
 
-    let tag: HTMLElement = {
+    const tag: HTMLElement = {
       type: this._getTagType(token),
       tagName: this._getTagName(token),
       attributes: {},
@@ -52,20 +51,22 @@ export default class Parser {
     for (let i = 1; i < token.length; i++) {
       if (token[i] === ' ' || i === token.length - 1) {
         return tagName.toLowerCase();
-      } else if (token[i] !== '<' && token[i] !== '/') {
+      }
+
+      if (token[i] !== '<' && token[i] !== '/') {
         tagName += token[i];
       }
     }
   }
 
   private static _parseAttributes(token: Token, tagName?: string, tagType?: HTMLElementType): HTMLElementAttributesMap {
-    if (tagName == null) tagName = this._getTagName(token);
-    if (tagType == null) tagType = this._getTagType(token);
+    tagName = tagName || this._getTagName(token);
+    tagType = tagType || this._getTagType(token);
 
     const map: HTMLElementAttributesMap = {};
     let capturingValue = false;
-    let property = "";
-    let text = "";
+    let property = '';
+    let text = '';
     let length = token.length;
 
     if (tagType === HTMLElementType.SelfClosing) {
@@ -80,12 +81,12 @@ export default class Parser {
         }
 
         property = text.toLowerCase();
-        map[property] = "";
-        text = "";
+        map[property] = '';
+        text = '';
       } else if (capturingValue && (token[i] === '"')) {
         capturingValue = false;
         map[property] = text;
-        text = "";
+        text = '';
       } else if (token[i] !== ' ' || capturingValue) {
         text += token[i];
       }
