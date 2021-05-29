@@ -35,7 +35,7 @@
     "tslint-config-airbnb": "5.11.1",
     "tslint-config-prettier": "1.18.0",
     "typescript": "3.3.3333",
-    "ws": "7.0.0"
+    "ws": "7.4.6"
   },
   "dependencies": {
     "pm2": "3.3.1"
